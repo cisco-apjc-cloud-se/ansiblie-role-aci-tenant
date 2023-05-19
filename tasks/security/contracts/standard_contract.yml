@@ -1,0 +1,36 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing Standard Contract '{{ contract.name }}'"
+  cisco.aci.aci_contract:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"  
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    tenant: "{{ tenant.name }}"
+    contract: "{{ contract.name }}"
+    description: "{{ contract.description | default() }}"
+    scope: "{{ contract.scope | default('context') }}"
+    state: "{{ contract.state }}"
+  delegate_to: localhost
+- name: Process Contract Subjects
+  ansible.builtin.include_tasks: subjects/subject.yml
+  when: contract.state == "present" and contract.subjects is defined
+  loop: "{{ contract.subjects }}"
+  loop_control:
+    loop_var: subject

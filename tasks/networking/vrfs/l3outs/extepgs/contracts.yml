@@ -1,0 +1,18 @@
+- name: Process Provided Contracts
+  ansible.builtin.include_tasks: contracts/provided.yml
+  when: extepg.state == "present" and extepg.contracts.provided is defined
+  loop: "{{ extepg.contracts.provided }}"
+  loop_control:
+    loop_var: contract
+- name: Process Consumed Contracts
+  when: extepg.state == "present" and extepg.contracts.consumed is defined
+  ansible.builtin.include_tasks: contracts/consumed.yml
+  loop: "{{ extepg.contracts.consumed }}"
+  loop_control:
+    loop_var: contract
+- name: Process Contract Masters
+  when: extepg.state == "present" and extepg.contracts.masters is defined and not ansible_check_mode ## aci_rest not supported in check mode
+  ansible.builtin.include_tasks: contracts/master.yml
+  loop: "{{ extepg.contracts.masters }}"
+  loop_control:
+    loop_var: master

@@ -1,0 +1,33 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Associating Provided Contract '{{ contract.name }}' to Access Group '{{ epg.name }}'"
+  cisco.aci.aci_epg_to_contract:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    tenant: "{{ tenant.name }}"
+    ap: "{{ ap.name }}"
+    epg: "{{ epg.name }}"
+    contract: "{{ contract.name }}"
+    contract_type: provider
+    # contract_label: contractlabel
+    # subject_label: subjlabel
+    state: "{{ contract.state }}"
+  delegate_to: localhost

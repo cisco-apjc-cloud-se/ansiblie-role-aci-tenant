@@ -1,0 +1,6 @@
+- name: "Process Tenant '{{ tenant.name }}' Application Profiles"
+  ansible.builtin.include_tasks: applications/application.yml
+  when: tenant.applications is defined
+  loop: "{{ tenant.applications | default([]) }}"
+  loop_control:
+    loop_var: ap

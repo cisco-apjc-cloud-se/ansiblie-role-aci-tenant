@@ -1,0 +1,35 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing Filter '{{ filter.name }}'"
+  cisco.aci.aci_filter:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"  
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    filter: "{{ filter.name }}"
+    description: "{{ filter.description | default() }}"
+    tenant: "{{ tenant.name }}"
+    state: "{{ filter.state }}"
+  delegate_to: localhost
+- name: Process Filter Entries
+  ansible.builtin.include_tasks: filter_entries/filter_entry.yml
+  when: filter.state == "present" and filter.entries is defined
+  loop: "{{ filter.entries }}"
+  loop_control:
+    loop_var: entry

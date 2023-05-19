@@ -1,0 +1,13 @@
+- name: "Process Tenant '{{ tenant.name }}' Filters"
+  ansible.builtin.include_tasks: security/filter.yml
+  when: tenant.security.filters is defined
+  loop: "{{ tenant.security.filters }}"
+  loop_control:
+    loop_var: filter
+- name: "Process Tenant '{{ tenant.name }}' Standard Contracts"
+  ansible.builtin.include_tasks: security/contracts/standard_contract.yml
+  when: tenant.security.contracts.standard is defined
+  loop: "{{ tenant.security.contracts.standard }}"
+  loop_control:
+    loop_var: contract
+

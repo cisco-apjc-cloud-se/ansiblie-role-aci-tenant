@@ -1,0 +1,45 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing L3Out '{{ l3out.name }}'"
+  cisco.aci.aci_l3out:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"  
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    tenant: "{{ tenant.name }}"
+    name: "{{ l3out.name }}"
+    description: "{{ l3out.description }}"
+    domain: "{{ l3out.domain }}"
+    vrf: "{{ vrf.name }}"
+    l3protocol: "{{ l3out.protocol }}" # "bgp","eigrp","ospf","pim","static"
+    state: "{{ l3out.state }}"
+    route_control: ["export"]
+  delegate_to: localhost
+- name: Process Node Profiles
+  ansible.builtin.include_tasks: nodeprofiles/nodeprofile.yml
+  when: l3out.state == "present" and l3out.node_profiles is defined
+  loop: "{{ l3out.node_profiles }}"
+  loop_control:
+    loop_var: node_profile
+- name: Process External Access Groups (External EPGs)
+  ansible.builtin.include_tasks: extepgs/extepg.yml
+  when: l3out.state == "present" and l3out.external_access_groups is defined
+  loop: "{{ l3out.external_access_groups }}"
+  loop_control:
+    loop_var: extepg

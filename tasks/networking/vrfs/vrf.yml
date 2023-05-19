@@ -1,0 +1,37 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing VRF '{{ vrf.name }}'"
+  cisco.aci.aci_vrf:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"  
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    vrf: "{{ vrf.name }}"
+    tenant: "{{ tenant.name }}"
+    description: "{{ vrf.description }}"
+    # policy_control_preference: enforced
+    # policy_control_direction: ingress
+    state: "{{ vrf.state }}"
+  delegate_to: localhost
+- name: Process Layer 3 Outs
+  ansible.builtin.include_tasks: l3outs/l3out.yml
+  when: vrf.l3outs is defined
+  loop: "{{ vrf.l3outs }}"
+  loop_control:
+    loop_var: l3out

@@ -1,0 +1,33 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing Filter Entry '{{ entry.name }}'"
+  cisco.aci.aci_filter_entry:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"  
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    entry: "{{ entry.name }}"
+    filter: "{{ filter.name }}"
+    tenant: "{{ tenant.name }}"
+    ether_type: "{{ entry.ethtype }}"
+    ip_protocol: "{{ entry.protocol | default('unspecified') }}"
+    dst_port_start: "{{ entry.dest_port.from | default('unspecified') }}"
+    dst_port_end: "{{ entry.dest_port.to | default('unspecified') }}"
+    state: present
+  delegate_to: localhost

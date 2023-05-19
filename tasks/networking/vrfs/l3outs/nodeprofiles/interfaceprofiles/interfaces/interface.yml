@@ -1,0 +1,44 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing L3out Interface 'Node:{{ interface.node_id }} Type:{{ interface.type }} Path:{{ interface.path }} Address:{{ interface.address }}'"
+  cisco.aci.aci_l3out_interface:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    tenant: "{{ tenant.name }}"
+    l3out: "{{ l3out.name }}"
+    node_profile: "{{ node_profile.name }}"
+    interface_profile: "{{ interface_profile.name }}"
+    pod_id: "{{ interface.pod | default(1) }}"
+    node_id: "{{ interface.node_id }}" # 101, 201-202 for vPC
+    path_ep: "{{ interface.path }}" # eth1/12, my_vpc_ipg
+    interface_type: "{{ interface.type }}"
+    encap: "vlan-{{ interface.vlan }}"
+    address: "{{ interface.address }}"
+    mtu: "{{ interface.mtu | default('inherit') }}"
+    mode: "{{ interface.mode | default('regular') }}" #  For ext-svi only - "regular", "native", "untagged"
+    state: present
+  delegate_to: localhost
+- name: Process BGP Peers
+  ansible.builtin.include_tasks: bgp_peers/bgp_peer.yml
+  when: interface.state == "present" and interface.bgp_peers is defined
+  loop: "{{ interface.bgp_peers }}"
+  loop_control:
+    loop_var: peer

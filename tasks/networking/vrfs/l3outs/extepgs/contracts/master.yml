@@ -1,0 +1,97 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       # annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Query Contract Master '{{ master.name }}' to External Access Group '{{ extepg.name }}'"
+  cisco.aci.aci_rest:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    # annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    path: "/api/node/mo/uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ extepg.name }}/rssecInherited-[uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ master.name }}].json"
+    method: get
+  register: query_output
+  delegate_to: localhost
+  when: master.state == "present"
+- debug:
+    msg: "{{ query_output }}"
+- name: "Adding Contract Master '{{ master.name }}' to External Access Group '{{ extepg.name }}'"
+  cisco.aci.aci_rest:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    # annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    path: "/api/node/mo/uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ extepg.name }}.json"
+    method: post
+    content:
+      fvRsSecInherited:
+        attributes:
+          tDn: "uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ master.name }}"
+          status: created
+  delegate_to: localhost
+  when: master.state == "present" and query_output.status != 200
+- name: "Modifiying Contract Master '{{ master.name }}' to External Access Group '{{ extepg.name }}'"
+  cisco.aci.aci_rest:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    # annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    path: "/api/node/mo/uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ extepg.name }}.json"
+    method: post
+    content:
+      fvRsSecInherited:
+        attributes:
+          tDn: "uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ master.name }}"
+          status: modified
+  delegate_to: localhost
+  when: master.state == "present" and query_output.totalCount == 1
+- name: "Removing Contract Master '{{ master.name }}' from External Access Group '{{ extepg.name }}'"
+  cisco.aci.aci_rest:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ apic_hostname }}"
+    username: "{{ apic_username }}"
+    password: "{{ apic_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    # annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    path: "/api/node/mo/uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ extepg.name }}.json"
+    method: post
+    content:
+      fvRsSecInherited:
+        attributes:
+          tDn: "uni/tn-{{ tenant.name }}/out-{{ l3out.name }}/instP-{{ master.name }}"
+          status: deleted
+  delegate_to: localhost
+  when: master.state == "absent"

@@ -1,0 +1,12 @@
+- name: "Process Access Group '{{ epg.name }}' Provided Contracts"
+  ansible.builtin.include_tasks: contracts/provided.yml
+  when: epg.state == "present" and epg.contracts.provided is defined
+  loop: "{{ epg.contracts.provided }}"
+  loop_control:
+    loop_var: contract
+- name: "Process Access Group '{{ epg.name }}' Consumed Contracts"
+  when: epg.state == "present" and epg.contracts.consumed is defined
+  ansible.builtin.include_tasks: contracts/consumed.yml
+  loop: "{{ epg.contracts.consumed }}"
+  loop_control:
+    loop_var: contract

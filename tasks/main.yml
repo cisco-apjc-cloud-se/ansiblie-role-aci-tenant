@@ -1,0 +1,11 @@
+- name: "Remove existing output_path file if present '{{ output_path }}'"
+  ansible.builtin.file:
+    path: "{{ output_path}}"
+    state: absent
+  check_mode: no
+- name: Iterate All Tenants
+  tags: always
+  ansible.builtin.include_tasks: tenant.yml
+  loop: "{{ tenants }}"
+  loop_control:
+    loop_var: tenant

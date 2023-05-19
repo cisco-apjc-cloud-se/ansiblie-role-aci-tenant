@@ -1,0 +1,39 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing External Access Group (External EPG) '{{ extepg.name }}'"
+  cisco.aci.aci_l3out_extepg:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    tenant: "{{ tenant.name }}"
+    l3out: "{{ l3out.name }}"
+    name: "{{ extepg.name }}"
+    description: "{{ extepg.description | default() }}"
+    state: "{{ extepg.state }}"
+  delegate_to: localhost
+- name: Process External Networks
+  ansible.builtin.include_tasks: subnets/subnet.yml
+  when: extepg.state == "present" and extepg.networks is defined
+  loop: "{{ extepg.networks }}"
+  loop_control:
+    loop_var: subnet
+- name: Process External Access Group Contracts
+  ansible.builtin.import_tasks: contracts.yml
+  when: extepg.state == "present" and extepg.contracts is defined

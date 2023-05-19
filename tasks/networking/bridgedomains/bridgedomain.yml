@@ -1,0 +1,43 @@
+# - name: Set APIC Credential Information
+#   ansible.builtin.set_fact:
+#     aci_info: &aci_info
+#       host: "{{ apic_hostname }}"
+#       username: "{{ apic_username }}"
+#       password: "{{ apic_password }}"
+#       validate_certs: false
+#       output_level: debug
+#       timeout: 120
+#       annotation: orchestrator:ansible
+#       output_path: "{{ output_path }}"
+- name: "Processing Bridge Domain '{{ bd.name }}'"
+  cisco.aci.aci_bd:
+    ### APIC Details ###
+    # <<: *aci_info
+    host: "{{ ansibile_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: "{{ validate_certs }}"
+    output_level: "{{ output_level }}"
+    timeout: "{{ timeout }}"
+    annotation: orchestrator:ansible
+    output_path: "{{ output_path }}"
+    ### Module Details ###
+    tenant: "{{ tenant.name }}"
+    description: "{{ bd.description }}"
+    bd: "{{ bd.name }}"
+    # mac_address: 00:22:BD:F8:19:FE
+    vrf: "{{ bd.vrf }}"
+    state: "{{ bd.state }}"
+  delegate_to: localhost
+- name: Process Bridge Domain Subnets
+  ansible.builtin.include_tasks: subnets/subnet.yml
+  when: bd.state == "present" and bd.subnets is defined
+  loop: "{{ bd.subnets }}"
+  loop_control:
+    loop_var: subnet
+- name: Associate L3Outs to Bridge Domain
+  ansible.builtin.include_tasks: l3outs/l3out.yml
+  when: bd.state == "present" and bd.l3outs is defined
+  loop: "{{ bd.l3outs }}"
+  loop_control:
+    loop_var: l3out
