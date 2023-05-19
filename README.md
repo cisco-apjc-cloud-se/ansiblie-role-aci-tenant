@@ -13,3 +13,22 @@ roles:
     version: main
     scm: git
 ```
+
+Execute the role as a play with host/inventory and customised variables (intent.yml and encrypted_password.yml)
+
+```yaml
+- name: Execute ACI Tenant Role
+  hosts: apic
+  # connection: local
+  gather_facts: false
+  vars_files:
+    - encrypted_password.yml
+    - intent.yml
+  vars:
+    output_path: config.json
+    output_level: debug
+    timeout: 120
+    validate_certs: false
+  roles:
+    - role: aci-tenant
+```
